@@ -37,7 +37,17 @@ function parseURL(url) {
 }
 
 async function handleRequest(request) {
-
+    if (request.method == "OPTIONS") {
+        return new Response("", {status:200, headers:{
+            "Access-Control-Allow-Credentials": true,
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Max-Age": "31536000",
+            "X-Request-Type": "CORS Preflight"
+        }});
+    }
+    
     let reqHeaders = new Headers(request.headers),
         outBody, outStatus = 200, outCt = null, outHeaders = new Headers({
             "Access-Control-Allow-Origin": "*",
@@ -53,7 +63,9 @@ async function handleRequest(request) {
         console.log("Parsed URL body: " + url)
         console.log("Parsed URL headers: " + JSON.stringify(headers))
 
-        if (request.method == "OPTIONS" || url.length < 3 || url.indexOf('.') == -1 || url == "favicon.ico" || url == "robots.txt") {
+        if (url.length < 3 || url.indexOf('.') == -1) {
+            throw "invalid URL input: " + url;
+        } else if (url == "favicon.ico" || url == "robots.txt") {
             return Response.redirect('https://workers.cloudflare.com', 307)
         } else {
             if (url.toLowerCase().indexOf("http") == -1) {
